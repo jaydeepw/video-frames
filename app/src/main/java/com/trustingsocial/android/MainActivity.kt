@@ -13,6 +13,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -43,7 +44,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Log.i(TAG, "All permissions are already given")
                 if (IS_DEVELOPING) {
-                    showFramesFromUri(Uri.parse("content://media/external/video/media/174028"))
+                    captureFragmes(Uri.parse("content://media/external/video/media/174071"))
                 } else {
                     captureCamera()
                 }
@@ -110,8 +111,8 @@ class MainActivity : AppCompatActivity() {
     private fun getRealPathFromURI(context: Context, contentUri: Uri): String? {
         var cursor: Cursor? = null
         return try {
-            val proj = arrayOf(MediaStore.Images.Media.DATA)
-            cursor = context.contentResolver.query(contentUri, proj, null, null, null)
+            val projection = arrayOf(MediaStore.Images.Media.DATA)
+            cursor = context.contentResolver.query(contentUri, projection, null, null, null)
             val columnIndex: Int? = cursor?.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
             cursor?.moveToFirst()
             cursor?.getString(columnIndex!!)
@@ -127,33 +128,18 @@ class MainActivity : AppCompatActivity() {
             if (requestCode == VIDEO_CAPTURED) {
                 val videoFileUri = data?.data
                 Log.d(TAG, "videoFileUri: $videoFileUri")
-                showFramesFromUri(videoFileUri)
+                captureFragmes(videoFileUri)
             }
         } else {
             Log.d(TAG, "activity cancelled...")
         }
     }
 
-    private fun showFramesFromUri(videoFileUri: Uri?) {
+    private fun captureFragmes(videoFileUri: Uri?) {
         Toast.makeText(this, videoFileUri.toString(), Toast.LENGTH_LONG).show()
         val path = getRealPathFromURI(this, videoFileUri!!)
         Log.d(TAG, "path: $path")
         val file = File(path)
-
-        /*var path: String?
-        Thread(Runnable {
-            path = getRealPathFromURI(this, videoFileUri!!)
-            Log.d("", "path: $path")
-
-            handler.post {
-                Toast.makeText(this, path, Toast.LENGTH_LONG).show()
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(path)
-            }
-        }).start()*/
-
-        /*videoView.setVideoURI(videoFileUri)
-        videoView.start()*/
 
         Log.d(TAG, "path: $path")
         val retriever = MediaMetadataRetriever()
@@ -164,7 +150,9 @@ class MainActivity : AppCompatActivity() {
         retriever.setDataSource(inputStream.fd)
         val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
         Log.d(TAG, "time: $time")
-        val bitmap = retriever.getFrameAtTime(TimeUnit.SECONDS.toMicros(1))
+        val bitmap = retriever.getFrameAtTime(TimeUnit.MILLISECONDS.toMicros(1000))
+        videoView.visibility = View.GONE
+        frame1.setImageBitmap(bitmap)
         Log.d(TAG, "height: ${bitmap.height}")
     }
 
@@ -189,6 +177,6 @@ class MainActivity : AppCompatActivity() {
         private const val PERMISSIONS_CODE_STORAGE: Int = 22
         private val TAG = MainActivity::class.java.simpleName
 
-        private const val IS_DEVELOPING = false
+        private const val IS_DEVELOPING = true
     }
 }
