@@ -12,7 +12,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -60,6 +59,12 @@ class MainActivity : AppCompatActivity() {
                 captureFrames(Uri.parse(DUMMY_VIDEO_URI))
             }
         }
+
+        showRandomNumber()
+    }
+
+    private fun showRandomNumber() {
+        randomNumber.text = Random.nextInt(100_000, 999_999).toString()
     }
 
     private fun requestStoragePermission() {
@@ -160,7 +165,6 @@ class MainActivity : AppCompatActivity() {
         val file = File(path)
         val bitmaps = getFrames(file)
         viewPager.adapter = getAdapter(bitmaps)
-        videoView.visibility = View.GONE
     }
 
     /**
