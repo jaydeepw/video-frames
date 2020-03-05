@@ -24,9 +24,8 @@ import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
 import java.io.FileInputStream
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
-// content://media/external/video/media/174021
-// /storage/emulated/0/DCIM/Camera/VID_20200304_100219.mp4
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -161,31 +160,46 @@ class MainActivity : AppCompatActivity() {
         val file = File(path)
         val bitmaps = getFrames(file)
         viewPager.adapter = getAdapter(bitmaps)
+        videoView.visibility = View.GONE
     }
 
+    /**
+     * This method should not be called from the main thread.
+     */
     private fun getFrames(file: File): List<Bitmap> {
         val retriever = MediaMetadataRetriever()
         val bitmaps = mutableListOf<Bitmap>()
+        var inputStream: FileInputStream? = null
         try {
             val absPath = file.absolutePath
             Log.d(TAG, "absPath: $absPath")
-            val inputStream = FileInputStream(absPath)
+            inputStream = FileInputStream(absPath)
 
             retriever.setDataSource(inputStream.fd)
             val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             Log.d(TAG, "time: $time")
-            val bitmap = retriever.getFrameAtTime(TimeUnit.MILLISECONDS.toMicros(1000))
-            videoView.visibility = View.GONE
-            bitmaps.add(bitmap)
-            Log.d(TAG, "height: ${bitmap.height}")
-
+            for (count in 0 until NUMBER_OF_FRAMES) {
+                val bitmap = retriever.getFrameAtTime(
+                    TimeUnit.MILLISECONDS.toMicros(getRandomTimeWithinVideoDuration())
+                )
+                bitmaps.add(bitmap)
+                Log.d(TAG, "height: ${bitmap.height}")
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             retriever.release()
+            inputStream?.close()
         }
 
         return bitmaps
+    }
+
+    private fun getRandomTimeWithinVideoDuration(): Long {
+        val startTimeInMillis = 1L
+        // keeping 500ms lesser just to be on the safer side.
+        val endTimeInMillis = (getVideoDuration() * 1000) - 500L
+        return Random.nextLong(startTimeInMillis, endTimeInMillis)
     }
 
     private fun getAdapter(bitmaps: List<Bitmap>): FragmentStatePagerAdapter {
@@ -207,8 +221,10 @@ class MainActivity : AppCompatActivity() {
         private const val VIDEO_CAPTURED: Int = 21
         private const val PERMISSIONS_CODE_STORAGE = 22
         private const val NUMBER_OF_FRAMES = 5
-        private const val DUMMY_VIDEO_URI = "content://media/external/video/media/174071"
 
+        private const val DUMMY_VIDEO_URI = "content://media/external/video/media/174071"
+        // this ƒlag was just used to speed up the development.
+        // Nothing else.
         private const val IS_DEVELOPING = false
     }
 }
