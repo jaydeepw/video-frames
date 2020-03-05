@@ -6,18 +6,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentStatePagerAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
@@ -44,10 +45,20 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Log.i(TAG, "All permissions are already given")
                 if (IS_DEVELOPING) {
-                    captureFragmes(Uri.parse("content://media/external/video/media/174071"))
+                    captureFrames(Uri.parse(DUMMY_VIDEO_URI))
                 } else {
                     captureCamera()
                 }
+            }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+            == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            if (IS_DEVELOPING) {
+                captureFrames(Uri.parse(DUMMY_VIDEO_URI))
             }
         }
     }
@@ -108,6 +119,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * This method should not be called from the main thread.
+     */
     private fun getRealPathFromURI(context: Context, contentUri: Uri): String? {
         var cursor: Cursor? = null
         return try {
@@ -128,55 +142,73 @@ class MainActivity : AppCompatActivity() {
             if (requestCode == VIDEO_CAPTURED) {
                 val videoFileUri = data?.data
                 Log.d(TAG, "videoFileUri: $videoFileUri")
-                captureFragmes(videoFileUri)
+                captureFrames(videoFileUri)
             }
         } else {
-            Log.d(TAG, "activity cancelled...")
+            Log.w(TAG, "activity cancelled...")
         }
     }
 
-    private fun captureFragmes(videoFileUri: Uri?) {
-        Toast.makeText(this, videoFileUri.toString(), Toast.LENGTH_LONG).show()
+    private fun captureFrames(videoFileUri: Uri?) {
+        // Toast.makeText(this, videoFileUri.toString(), Toast.LENGTH_LONG).show()
         val path = getRealPathFromURI(this, videoFileUri!!)
         Log.d(TAG, "path: $path")
-        val file = File(path)
 
+        if (path == null) {
+            throw IllegalStateException("After parsing the video URI, path found to be null")
+        }
         Log.d(TAG, "path: $path")
+        val file = File(path)
+        val bitmaps = getFrames(file)
+        viewPager.adapter = getAdapter(bitmaps)
+    }
+
+    private fun getFrames(file: File): List<Bitmap> {
         val retriever = MediaMetadataRetriever()
-        // retriever.setDataSource(path)
-        val absPath = file.absolutePath
-        Log.d(TAG, "absPath: $absPath")
-        val inputStream = FileInputStream(absPath)
-        retriever.setDataSource(inputStream.fd)
-        val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-        Log.d(TAG, "time: $time")
-        val bitmap = retriever.getFrameAtTime(TimeUnit.MILLISECONDS.toMicros(1000))
-        videoView.visibility = View.GONE
-        frame1.setImageBitmap(bitmap)
-        Log.d(TAG, "height: ${bitmap.height}")
+        val bitmaps = mutableListOf<Bitmap>()
+        try {
+            val absPath = file.absolutePath
+            Log.d(TAG, "absPath: $absPath")
+            val inputStream = FileInputStream(absPath)
+
+            retriever.setDataSource(inputStream.fd)
+            val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            Log.d(TAG, "time: $time")
+            val bitmap = retriever.getFrameAtTime(TimeUnit.MILLISECONDS.toMicros(1000))
+            videoView.visibility = View.GONE
+            bitmaps.add(bitmap)
+            Log.d(TAG, "height: ${bitmap.height}")
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            retriever.release()
+        }
+
+        return bitmaps
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
+    private fun getAdapter(bitmaps: List<Bitmap>): FragmentStatePagerAdapter {
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+        return object : FragmentStatePagerAdapter(supportFragmentManager) {
+
+            override fun getItem(position: Int): Fragment {
+                return CardFragment(bitmaps[position])
+            }
+
+            override fun getCount(): Int {
+                return bitmaps.size
+            }
         }
     }
 
     companion object {
-        private const val VIDEO_CAPTURED: Int = 21
-        private const val PERMISSIONS_CODE_STORAGE: Int = 22
         private val TAG = MainActivity::class.java.simpleName
+        private const val VIDEO_CAPTURED: Int = 21
+        private const val PERMISSIONS_CODE_STORAGE = 22
+        private const val NUMBER_OF_FRAMES = 5
+        private const val DUMMY_VIDEO_URI = "content://media/external/video/media/174071"
 
-        private const val IS_DEVELOPING = true
+        private const val IS_DEVELOPING = false
     }
 }
