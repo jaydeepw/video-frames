@@ -136,6 +136,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.video_kyc).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, MainVideoKycActivity.class);
+                startActivity(intent);
+            }
+        });
+
         findViewById(R.id.button_face_id_match).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -425,7 +433,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSuccess(TVTransactionData transactionID) {
             MainActivity.this.transactionID = transactionID.getTransactionId();
-            showToast("transactionId: " + transactionID);
+            showToast("transactionId: " + MainActivity.this.transactionID);
         }
 
         @Override

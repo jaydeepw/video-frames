@@ -42,7 +42,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    implementation ('com.trustvision:tv_sdk:1.0.17@aar') {
+    implementation ('com.trustvision:tv_sdk:1.0.20@aar') {
         transitive = true
         exclude group: 'com.google.xzing', module: 'core'
     }
