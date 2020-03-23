@@ -5,8 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".MainActivity"
-    tools:showIn="@layout/activity_main">
+    tools:context=".MainVideoKycActivity"
+    tools:showIn="@layout/activity_main_video_kyc">
 
     <TextView
         android:id="@+id/randomNumber"

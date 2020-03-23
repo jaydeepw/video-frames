@@ -19,6 +19,17 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".MainVideoKycActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <!--<intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>-->
+        </activity>
+
+        <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
@@ -28,6 +39,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--<meta-data
+            android:name="com.trustvision.accessKeyId"
+            android:value="51ebb355-017d-4ee3-b9fd-8c71b2345052" />
+        <meta-data
+            android:name="com.trustvision.accessKeySecret"
+            android:value="lKh9ugZ09BfwqpJB5fdY79ZRxyOTrzbr" />-->
+
+        <meta-data
+            android:name="com.trustvision.accessKeyId"
+            android:value="c10b5c52-2bee-4f43-bacf-d284486282f7" />
+        <meta-data
+            android:name="com.trustvision.accessKeySecret"
+            android:value="krDE7uHjBTv8CGLnAxuuxua7ymPy0nyf" />
     </application>
 
 </manifest>

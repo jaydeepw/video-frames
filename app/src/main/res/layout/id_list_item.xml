@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp">
+    <TextView
+        android:id="@+id/ocr_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:alpha="0.4"
+        android:textAllCaps="true"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        />
+    <TextView
+        android:id="@+id/ocr_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+</LinearLayout>
